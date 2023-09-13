@@ -1,0 +1,104 @@
+#!/usr/bin/env node
+
+// 1. init module
+const fs = require("fs");
+const { spawn } = require("child_process");
+var { exec } = require('child_process');
+// ----------------------
+
+// 2. empty list
+let classes = []; // empty array
+let id = []; // empty array
+let class_and_id = [];
+// ----------------------
+
+
+// 3. args cssTractor index.html <---
+let file = process.argv[2];
+const pwd = spawn("pwd");
+
+pwd.stdout.on("data", data => {
+  var path = String(data).trim().concat("/", file);
+
+  let html = fs.readFileSync(path, "utf8");
+  cssTractor(html=html);
+});
+// ----------------------
+
+// 4. extracting classes and id from html 
+
+function cssTractor(html) {
+
+  html.replace(/class=['"][^'"]+/g, function (m) {
+    // https://regex101.com/r/jD0wX1/1
+    classes = classes.concat(m.match(/[^'"]+$/)[0].split(" ")); // https://regex101.com/r/jD0wX1/2
+  }); // take all classes
+
+  classes = classes.filter(function (item, pos) {
+    return classes.indexOf(item) == pos;
+  }); // return unique classes
+
+  for (let item in classes) {
+    add_symbols = ".".concat(classes[item], " {}");
+    class_and_id.push(add_symbols);
+  }
+  
+
+  html.replace(/id=['"][^'"]+/g, function (m) {
+    // https://regex101.com/r/jD0wX1/1
+    id = id.concat(m.match(/[^'"]+$/)[0].split(" ")); // https://regex101.com/r/jD0wX1/2
+  }); // take all classes
+
+  id = id.filter(function (item, pos) {
+    return id.indexOf(item) == pos;
+  }); // return unique id 
+
+  for (let item in id) {
+    add_symbols = "#".concat(id[item], " {}");
+    class_and_id.push(add_symbols); 
+  }
+  
+  // ----------------------
+  byfer_copy(); 
+}
+
+// 5. byfer putting class data into the clipboard
+function byfer_copy() {
+  let string_result = "";
+
+  for (string_item in class_and_id) {
+    string_result += String(class_and_id[string_item]).concat("\n\n");
+  }
+
+  string_result = string_result.substring(1, string_result.length-2); // delete /n symbol first and end 
+
+  // console.log(string_result);
+
+  let string_copy = `echo "${string_result}" | xclip -sel clip`;
+  exec(string_copy, (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
+  console.log("Ok");
+  process.exit();
+}
+  // --------- Mersi boky Scorly Fly -------------
+
+
+
+
+
+
+
+
+
+
+
+
