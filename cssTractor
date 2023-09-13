@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+//     0 installing 
+//     --->  sudo apt install xclip
+//     --->  installing node js  v18.16.0 written on this version but I think it will work on almost any version
+//     --->  keymap.set("n", "<leader>cs", ":!cssTractor %<CR>") -- can doing keyboard for nvim template  
+
 // 1. init module
 const fs = require("fs");
 const { spawn } = require("child_process");
