@@ -1,38 +1,27 @@
 #!/usr/bin/env node
 
-//     0 installing 
-//     --->  sudo apt install xclip
-//     --->  installing node js  v18.16.0 written on this version but I think it will work on almost any version
-//     --->  keymap.set("n", "<leader>cs", ":!cssTractor %<CR>") -- can doing keyboard for nvim template  
+// init module
+let { exec } = require('child_process');
 
-// 1. init module
-const fs = require("fs");
-const { spawn } = require("child_process");
-var { exec } = require('child_process');
-// ----------------------
 
-// 2. empty list
+// instruction 
+
+// cssTractor index.html        all
+
+// command for vim nvim
+// Обезательно нужно поставить w! в конеце ! так как бывает баг при обычной w файл сохраняется но при выводе cat file вывод пустое содержания 
+// так как данный скрипт базируется на cat то это может привести к ошибки поэтому w!
+// keymap.set("n", "<leader>cs", ":w! || !cssTractor -f %<CR>") -- cssTractor extract css
+// keymap.set("n", "<leader>cb", ":w! || !cssTractor -b<CR>") -- cssTractor extract css
+
+
+// empty list
 let classes = []; // empty array
 let id = []; // empty array
 let class_and_id = [];
-// ----------------------
 
 
-// 3. args cssTractor index.html <---
-let file = process.argv[2];
-const pwd = spawn("pwd");
-
-pwd.stdout.on("data", data => {
-  var path = String(data).trim().concat("/", file);
-
-  let html = fs.readFileSync(path, "utf8");
-  cssTractor(html=html);
-});
-// ----------------------
-
-// 4. extracting classes and id from html 
-
-function cssTractor(html) {
+function css_main(html) {
 
   html.replace(/class=['"][^'"]+/g, function (m) {
     // https://regex101.com/r/jD0wX1/1
@@ -47,7 +36,7 @@ function cssTractor(html) {
     add_symbols = ".".concat(classes[item], " {}");
     class_and_id.push(add_symbols);
   }
-  
+
 
   html.replace(/id=['"][^'"]+/g, function (m) {
     // https://regex101.com/r/jD0wX1/1
@@ -61,49 +50,68 @@ function cssTractor(html) {
   for (let item in id) {
     add_symbols = "#".concat(id[item], " {}");
     class_and_id.push(add_symbols); 
-  }
-  
+  } 
   // ----------------------
   byfer_copy(); 
 }
 
-// 5. byfer putting class data into the clipboard
+// byfer putting class data into the clipboard
 function byfer_copy() {
   let string_result = "";
 
   for (string_item in class_and_id) {
     string_result += String(class_and_id[string_item]).concat("\n\n");
   }
+  string_result = string_result.substring(0, string_result.length-2); // delete /n symbol first and end 
 
-  string_result = string_result.substring(1, string_result.length-2); // delete /n symbol first and end 
-
-  // console.log(string_result);
-
-  let string_copy = `echo "${string_result}" | xclip -sel clip`;
+  string_copy = `echo "${string_result}" | xclip -sel clip`;
+  // we can see the unclosed process in htop after the script is executed clip -sel c this process of the xclip program will end automatically after the first insertion (this is a feature of the xclip program with these arguments)
   exec(string_copy, (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`);
-      return;
-    }
     console.log(`stdout: ${stdout}`);
   });
   console.log("Ok");
   process.exit();
 }
-  // --------- Mersi boky Scorly Fly -------------
 
 
 
+function readFile(path) {
+  // console.log(read_file); // ok
+  exec(path, (error, stdout, stderr) => {
+    css_main(html=stdout);
+  });
+}
 
 
 
+// args cssTractor index.html <---
+function main() {
+  // let string_copy;
 
+  let file;
 
+  if ( process.argv[2] == "-b" ) {
+    let buf = `xclip -o`;
+    // we can see the unclosed process in htop after the script is executed clip -sel c this process of the xclip program will end automatically after the first insertion (this is a feature of the xclip program with these arguments)
+    exec(buf, (error, stdout, stderr) => {
+      css_main(html=stdout);
+    });
+  } 
 
+  else if (process.argv[2] == "-f"){
+    file = process.argv[3];
+    const pwd = `pwd`;
+    exec(pwd, (error, stdout, stderr) => {
+      let path = "cat ".concat(String(stdout).trim().concat("/", file));
+      // console.log(path);
+      readFile(path=path);
+    });
+  } 
 
+  else {
+    console.log("Error in key selection !");
+  }
+}
+// ----------------------
 
-
+main();
