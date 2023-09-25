@@ -1,0 +1,265 @@
+#!/usr/bin/env node
+
+// init module
+let { exec } = require('child_process');
+
+// instruction
+
+// cssTractor index.html        all
+
+// command for vim nvim
+// Обезательно нужно поставить w! в конеце ! так как бывает баг при обычной w файл сохраняется но при выводе cat file вывод пустое содержания
+// так как данный скрипт базируется на cat то это может привести к ошибки поэтому w!
+// keymap.set("n", "<leader>sc", ":w! || !scssTractor -f %<CR>") -- cssTractor extract css
+// keymap.set("n", "<leader>sd", ":w! || !scssTractor -b<CR>") -- cssTractor extract css
+
+
+// empty list
+let classes = []; // empty array
+let id = []; // empty array
+let class_and_id = [];
+
+let list_block = [];
+let list_element = [];
+let list_block_mod = [];
+let list_element_mod = [];
+
+let g_com = ``;
+let g_str = ``;
+
+//////////////////////
+let vert_space = '\n\n'; // '' -- без вертикальныъ отступов \n -- с отступами по вертикальныъ
+let tab = 2; // 2 tab
+// let open_b = ``; // '' -- закрытые ковычки на модификаторе блока \n -- открытые
+// let open =
+/////////////////////////////////////
+
+let list_output = [];
+let flug = 0;
+let flug_em = 0;
+let tab_rep = " ".repeat(tab);
+
+
+
+function add_elem(it_b) {
+
+  for ( it_el in list_element ) {
+    let sl_e = list_element[it_el].replace(/__.*/, '');
+    let cat_el = list_element[it_el].replace(/^(.*?)\__/, '');
+
+    if ( it_b == sl_e ) {
+
+      flug = 1;
+
+      // console.log(flug);
+      // list_output[1] = 1;
+      g_str += `${vert_space}${tab_rep}$__${cat_el} {`;
+      // console.log(g_str);
+
+      for ( it_em in list_element_mod ) {
+
+        let cat_emd = String(list_element_mod[it_em]).replace(/--.*/, '');
+        // console.log(cat_emd);
+
+        if ( cat_emd == list_element[it_el] ) {
+          g_str += `${vert_space}${tab_rep}  $--${list_element_mod[it_em].replace(/^(.*?)\--/, '')} {}`;
+          // flug += 1;
+          flug_em = 1;
+        }
+      }
+
+      if ( flug_em == 0) {
+        g_str += `}`;
+      } else {
+        g_str += `${vert_space}${tab_rep}}`;
+      }
+      flug_em = 0;
+    }
+  }
+}
+
+
+function gluing_block_mod() {
+
+  // console.log("ok");
+
+  for ( it_b in list_block ) {
+
+    if ( it_b > 0 ) {
+      g_str += `${vert_space}`;
+    }
+
+    g_str += `.${list_block[it_b]} {`;
+
+    for (it_m in list_block_mod ) {
+      let sl_m = list_block_mod[it_m].replace(/--.*/, '');
+      if ( list_block[it_b] == sl_m ) {
+        cat_space = list_block_mod[it_m].replace(/^(.*?)\--/, '');
+        // g_com += `//.${list_block[it_b]}--${list_element[it_m]}\n`;
+        g_str += `${vert_space}${tab_rep}$--${cat_space} {}`;
+        // list_output[0] = 1;
+        flug = 1;
+      }
+    }
+
+    add_elem(list_block[it_b]);
+    // g_str += flug;
+
+    if ( flug == 1 ) {
+      g_str += `${vert_space}}`;
+    } else {
+      g_str += `}`;
+    }
+
+    flug = 0;
+  }
+}
+
+
+function mod_loop() {
+  for ( list_m in list_block_mod ) {
+    let slice_m = list_block_mod[list_m].replace(/--.*/, '');
+    // console.log(slice_m);
+    if ( !(list_block.includes(slice_m)) ) {
+      list_block.push(slice_m);
+    }
+  }
+}
+
+function add_list_scss() {
+
+  // console.log(classes);
+  for ( ib in classes) {
+    if ( !(/__/.test(classes[ib])) ) {
+      if ( /--/.test(classes[ib])) {
+
+        let tlbm = classes[ib].replace(/--.*/, '');
+        if ( !(list_block.includes(tlbm)) ) {
+          list_block.push(tlbm);
+        }
+        list_block_mod.push(classes[ib]);
+        continue;
+      }
+
+      if ( !(list_block.includes(classes[ib]))){
+        list_block.push(classes[ib]);
+      }
+    } else {
+      let child_slice = classes[ib].replace(/__.*/, '');
+      if ( !(list_block.includes(child_slice)) ){
+        list_block.push(child_slice);
+      }
+
+      let slice_in_element = classes[ib].replace(/--.*/, '');
+      if ( !(list_element.includes(slice_in_element)) ) {
+        list_element.push(slice_in_element);
+      }
+
+
+      if ( /--/.test(classes[ib])) {
+        list_element_mod.push(classes[ib])
+      }
+    }
+  }
+
+
+  mod_loop();
+  gluing_block_mod();
+}
+
+
+
+function css_main(html) {
+
+  html.replace(/class=['"][^'"]+/g, function (m) {
+    // https://regex101.com/r/jD0wX1/1
+    classes = classes.concat(m.match(/[^'"]+$/)[0].split(" ")); // https://regex101.com/r/jD0wX1/2
+  }); // take all classes
+
+  classes = classes.filter(function (item, pos) {
+    return classes.indexOf(item) == pos;
+  }); // return unique classes
+
+  // for (let item in classes) {
+  //   add_symbols = ".".concat(classes[item], " {}");
+  //   class_and_id.push(add_symbols);
+  // }
+
+
+  html.replace(/id=['"][^'"]+/g, function (m) {
+    // https://regex101.com/r/jD0wX1/1
+    id = id.concat(m.match(/[^'"]+$/)[0].split(" ")); // https://regex101.com/r/jD0wX1/2
+  }); // take all classes
+
+  id = id.filter(function (item, pos) {
+    return id.indexOf(item) == pos;
+  }); // return unique id
+
+  // for (let item in id) {
+  //   add_symbols = "#".concat(id[item], " {}");
+  //   class_and_id.push(add_symbols);
+  // }
+  // ----------------------
+
+  add_list_scss();
+  byfer_copy();
+}
+
+// byfer putting class data into the clipboard
+function byfer_copy() {
+  let string_result = "";
+
+  // for (string_item in class_and_id) {
+  //   string_result += String(class_and_id[string_item]).concat("\n\n");
+  // }
+  // string_result = string_result.substring(0, string_result.length-2); // delete /n symbol first and end
+
+  string_copy = `echo '${g_str}' | xclip -sel clip`;
+  // we can see the unclosed process in htop after the script is executed clip -sel c this process of the xclip program will end automatically after the first insertion (this is a feature of the xclip program with these arguments)
+  exec(string_copy, (error, stdout, stderr) => {
+    console.log(`stdout: ${stdout}`);
+  });
+  console.log("Ok");
+  process.exit();
+}
+
+
+
+function readFile(path) {
+  // console.log(read_file); // ok
+  exec(path, (error, stdout, stderr) => {
+    css_main(html=stdout);
+  });
+}
+
+// args cssTractor index.html <---
+function main() {
+  // let string_copy;
+
+  let file;
+
+  if ( process.argv[2] == "-b" ) {
+    let buf = `xclip -o`;
+    // we can see the unclosed process in htop after the script is executed clip -sel c this process of the xclip program will end automatically after the first insertion (this is a feature of the xclip program with these arguments)
+    exec(buf, (error, stdout, stderr) => {
+      css_main(html=stdout);
+    });
+  }
+
+  else if (process.argv[2] == "-f"){
+    file = process.argv[3];
+    const pwd = `pwd`;
+    exec(pwd, (error, stdout, stderr) => {
+      let path = "cat ".concat(String(stdout).trim().concat("/", file));
+      // console.log(path);
+      readFile(path=path);
+    });
+  }
+
+  else {
+    console.log("Error in key selection !");
+  }
+}
+// ----------------------
+
+main();
