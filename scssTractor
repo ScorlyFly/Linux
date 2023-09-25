@@ -5,7 +5,7 @@ let { exec } = require('child_process');
 
 // instruction
 
-// cssTractor index.html        all
+// scssTractor -f index.html        all
 
 // command for vim nvim
 // Обезательно нужно поставить w! в конеце ! так как бывает баг при обычной w файл сохраняется но при выводе cat file вывод пустое содержания
@@ -53,7 +53,7 @@ function add_elem(it_b) {
 
       // console.log(flug);
       // list_output[1] = 1;
-      g_str += `${vert_space}${tab_rep}$__${cat_el} {`;
+      g_str += `${vert_space}${tab_rep}&__${cat_el} {`;
       // console.log(g_str);
 
       for ( it_em in list_element_mod ) {
@@ -62,7 +62,7 @@ function add_elem(it_b) {
         // console.log(cat_emd);
 
         if ( cat_emd == list_element[it_el] ) {
-          g_str += `${vert_space}${tab_rep}  $--${list_element_mod[it_em].replace(/^(.*?)\--/, '')} {}`;
+          g_str += `${vert_space}${tab_rep}  &--${list_element_mod[it_em].replace(/^(.*?)\--/, '')} {}`;
           // flug += 1;
           flug_em = 1;
         }
@@ -96,7 +96,7 @@ function gluing_block_mod() {
       if ( list_block[it_b] == sl_m ) {
         cat_space = list_block_mod[it_m].replace(/^(.*?)\--/, '');
         // g_com += `//.${list_block[it_b]}--${list_element[it_m]}\n`;
-        g_str += `${vert_space}${tab_rep}$--${cat_space} {}`;
+        g_str += `${vert_space}${tab_rep}&--${cat_space} {}`;
         // list_output[0] = 1;
         flug = 1;
       }
