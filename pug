@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+const pug = require("pug");
+const fs = require("fs");
+
+let path = process.argv;
+let namefile = process.argv[2].replace(/....$/, '');
+
+const html = pug.renderFile(path[2]);
+
+fs.writeFileSync(namefile.concat(".html"), html);
