@@ -5,7 +5,7 @@ let { exec } = require('child_process');
 
 // instruction
 
-// scssTractor -f index.html        all
+// cssTractor index.html        all
 
 // command for vim nvim
 // Обезательно нужно поставить w! в конеце ! так как бывает баг при обычной w файл сохраняется но при выводе cat file вывод пустое содержания
@@ -71,7 +71,7 @@ function add_elem(it_b) {
       if ( flug_em == 0) {
         g_str += `}`;
       } else {
-        g_str += `${vert_space}${tab_rep}}`;
+        g_str += `\n${tab_rep}}`;
       }
       flug_em = 0;
     }
@@ -106,7 +106,7 @@ function gluing_block_mod() {
     // g_str += flug;
 
     if ( flug == 1 ) {
-      g_str += `${vert_space}}`;
+      g_str += `\n}`;
     } else {
       g_str += `}`;
     }
