@@ -1,0 +1,34 @@
+#// Набор скриптов для бстрого копирования всего чего можно 
+
+
+#///////////////////  cvf
+#!/bin/bash
+find='/bin/find';
+KEY=$1;
+ARG_1=$2;
+ARG_2=$3;
+COM=$($find . -maxdepth 1 -mmin $ARG_1);
+eval cp $KEY $COM $ARG_2;
+
+
+
+
+
+#///////////////////  mvf
+#!/bin/bash
+find='/bin/find';
+KEY=$1;
+ARG_1=$2;
+ARG_2=$3;
+COM=$($find . -maxdepth 1 -mmin $ARG_1);
+eval mv $KEY $COM $ARG_2;
+
+
+
+
+#///////////////////  Xopy
+#!/bin/bash
+find='/bin/find';
+ARG_1=$1;
+COM=$($find . -maxdepth 1 -mmin $ARG_1);
+eval xclip-copyfile $COM;
