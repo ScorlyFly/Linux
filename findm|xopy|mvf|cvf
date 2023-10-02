@@ -27,7 +27,48 @@ eval mv $KEY $COM $ARG_2;
 
 
 
-#///////////////////  Xopy
+#///////////////////  findm
+
+
+#!/bin/bash
+
+find='/bin/find';
+
+min_time=$1;
+max_time=$2;
+
+
+if [[ "$1" = "-h" ]]; then
+  echo "findm 20 - (найти файлы созданные меньше 20 минут назад)";
+  echo "findm - 20 (найти файлы созданные больше 20 минут назад)";
+  echo "findm 60 20 (найти файлы созданные меньше 60 минут назад и больше 20 минут назад)";
+  exit 1;
+fi;
+
+if [[ $min_time = "-" ]]; then
+  out=$($find . -maxdepth 1 -mmin +$max_time);
+  echo "$out";
+elif [[ $max_time = "-" ]]; then 
+  out=$($find . -maxdepth 1 -mmin -$min_time);
+  echo "$out";
+else
+  out=$($find . -maxdepth 1 -mmin -$min_time -mmin +$max_time);
+  echo "$out";
+fi;
+
+
+if [[ $3 = "y" ]]; then
+  eval xclip-copyfile $out;
+  echo "copy";
+fi;
+
+
+
+
+
+
+
+
 #!/bin/bash
 find='/bin/find';
 ARG_1=$1;
