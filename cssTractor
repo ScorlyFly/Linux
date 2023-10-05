@@ -11,7 +11,7 @@ let { exec } = require('child_process');
 // command for vim nvim
 // Обезательно нужно поставить w! в конеце ! так как бывает баг при обычной w файл сохраняется но при выводе cat file вывод пустое содержания 
 // так как данный скрипт базируется на cat то это может привести к ошибки поэтому w!
-// keymap.set("n", "<leader>cs", ":w! || !cssTractor -f %<CR>") -- cssTractor extract css
+// keymap.set("n", "<leader>cs", ":w! || !cssTractor -f %:t<CR>") -- cssTractor extract css
 // keymap.set("n", "<leader>cb", ":w! || !cssTractor -b<CR>") -- cssTractor extract css
 
 
